@@ -4,6 +4,7 @@
 lxc.devttydir = lxc
 lxc.tty = 4
 lxc.pts = 1024
+lxc.kmsg = 0
 
 # Mount entries
 lxc.mount.auto = proc:mixed sys:ro

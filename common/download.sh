@@ -34,6 +34,10 @@ elif [ $RELEASE = 'squeeze' ] || [ $RELEASE = 'wheezy' ]; then
   utils.lxc.create -t debian -- \
                    --release ${RELEASE} \
                    --arch ${ARCH}
+elif [ $DISTRIBUTION = centos ]; then
+  utils.lxc.create -t centos -- \
+                   --release ${RELEASE} \
+                   --arch ${ARCH}
 else
   utils.lxc.create -t download -- \
                    --dist ${DISTRIBUTION} \

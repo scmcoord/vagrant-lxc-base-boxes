@@ -1,10 +1,10 @@
 UBUNTU_BOXES= precise quantal raring saucy trusty
 DEBIAN_BOXES= squeeze wheezy sid jessie
-CENTOS_BOXES= 6
+CENTOS_BOXES= 5 6 7
 TODAY=$(shell date -u +"%Y-%m-%d")
 
 # Replace i686 with i386 and x86_64 with amd64
-ARCH=$(shell uname -m | sed -e "s/68/38/" | sed -e "s/x86_64/amd64/")
+ARCH=$(shell uname -m | sed -e "s/68/38/")
 
 default:
 

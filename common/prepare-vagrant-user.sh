@@ -8,25 +8,25 @@ export VAGRANT_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEA6NF8iallvQVp22WDkTkyrtvp
 info "Preparing vagrant user..."
 
 # Create vagrant user
-if $(grep -q 'vagrant' ${ROOTFS}/etc/shadow); then
+if $(grep -q 'vagrant' ${ROOTFS}/etc/passwd); then
   log 'Skipping vagrant user creation'
-elif $(grep -q 'ubuntu' ${ROOTFS}/etc/shadow); then
+elif $(grep -q 'ubuntu' ${ROOTFS}/etc/passwd); then
   debug 'vagrant user does not exist, renaming ubuntu user...'
   mv ${ROOTFS}/home/{ubuntu,vagrant}
   chroot ${ROOTFS} usermod -l vagrant -d /home/vagrant ubuntu &>> ${LOG}
   chroot ${ROOTFS} groupmod -n vagrant ubuntu &>> ${LOG}
-  echo -n 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
+  echo 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
   log 'Renamed ubuntu user to vagrant and changed password.'
 elif [ ${DISTRIBUTION} = 'centos' ]; then
   debug 'Creating vagrant user...'
   chroot ${ROOTFS} useradd --create-home -s /bin/bash -u 1000 vagrant &>> ${LOG}
-  echo -n 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
+  echo 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
   sed -i 's/^Defaults\s\+requiretty/# Defaults requiretty/' $ROOTFS/etc/sudoers
 else
   debug 'Creating vagrant user...'
   chroot ${ROOTFS} useradd --create-home -s /bin/bash vagrant &>> ${LOG}
   chroot ${ROOTFS} adduser vagrant sudo &>> ${LOG}
-  echo -n 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
+  echo 'vagrant:vagrant' | chroot ${ROOTFS} chpasswd
 fi
 
 # Configure SSH access
@@ -43,9 +43,14 @@ fi
 # Enable passwordless sudo for the vagrant user
 if [ -f ${ROOTFS}/etc/sudoers.d/vagrant ]; then
   log 'Skipping sudoers file creation.'
-else
+elif grep -q vagrant ${ROOTFS}/etc/sudoers > /dev/null; then
+  log 'vagrant user found in sudoers file, skipping.'
+elif [ -d ${ROOTFS}/etc/sudoers.d ]; then
   debug 'Sudoers file was not found'
   echo "vagrant ALL=(ALL) NOPASSWD:ALL" > ${ROOTFS}/etc/sudoers.d/vagrant
   chmod 0440 ${ROOTFS}/etc/sudoers.d/vagrant
   log 'Sudoers file created.'
+else
+  debug 'Sudoers directory was not found, using file'
+  echo "vagrant ALL=(ALL) NOPASSWD:ALL" >> ${ROOTFS}/etc/sudoers
 fi
